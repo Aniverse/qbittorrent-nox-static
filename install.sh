@@ -3,12 +3,15 @@
 # https://github.com/Aniverse/qbittorrent-nox-static
 # Author: Aniverse
 script_update=2020.03.17
-script_version=r10007
+script_version=r10008
 ################################################################################################
 
 usage_guide() {
+yum install -y nano        # wget
+pacman -S --noconfirm nano # wget
+
 s=$HOME/install.sh;rm -f $s;nano $s;chmod 755 $s
-bash $HOME/install.sh aaaa bbb 2021 9005
+bash $HOME/install.sh aaa bbb 2021 9005
 
 bash <(wget -qO- https://github.com/Aniverse/qbittorrent-nox-static/raw/master/install.sh -o /dev/null) aniverse test123
 bash <(curl -Ls https://github.com/Aniverse/qbittorrent-nox-static/raw/master/install.sh) aniverse test123
@@ -20,6 +23,7 @@ iPass=$2
 webport=$3
 iport=$4
 [[ -z $iUser ]] && echo -e "Work in progress, do not use this script for now ..." && exit
+[[ -z $iPass ]] && echo -e "Please input your password" && exit 1
 [[ -z $webport ]] && webport=2017
 [[ -z $iport ]] && iport=9002
 
@@ -72,8 +76,10 @@ function install_qbittorrent_nox_static(){
 
 function configure_qbittorrent_nox(){
     if [[ $Root == 1 ]]; then
-        if [[ $release =~ (debian|ubunt) ]]; then
+        if [[ $release =~ (debian|ubuntu) ]]; then
             adduser --gecos "" $iUser --disabled-password --force-badname >> $OutputLOG 2>&1
+        elif [[ $release == archlinux ]]; then
+            useradd $iUser -m  >> $OutputLOG 2>&1
         else
             adduser $iUser >> $OutputLOG 2>&1
         fi
