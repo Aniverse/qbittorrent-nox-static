@@ -3,7 +3,7 @@
 # https://github.com/Aniverse/qbittorrent-nox-static
 # Author: Aniverse
 script_update=2020.03.17
-script_version=r10005
+script_version=r10006
 ################################################################################################
 
 usage_guide() {
@@ -11,6 +11,7 @@ s=$HOME/install.sh;rm -f $s;nano $s;chmod 755 $s
 bash $HOME/install.sh aaaa bbb 2021 9005
 
 bash <(wget -qO- https://github.com/Aniverse/qbittorrent-nox-static/raw/master/install.sh -o /dev/null) aniverse test123
+bash <(curl -Ls https://github.com/Aniverse/qbittorrent-nox-static/raw/master/install.sh) aniverse test123
 }
 ################################################################################################
 
@@ -39,16 +40,22 @@ AppName=qBittorrent
 AppNameLower=qbittorrent
 AppCmd=qbittorrent-nox
 AppExec="${BinPath}/${AppCmd}"
-source <(wget -qO- https://github.com/Aniverse/inexistence/raw/master/00.Installation/function)
-source <(wget -qO- https://github.com/Aniverse/inexistence/raw/master/00.Installation/check-sys)
+
+if [[ -n $(command -v curl) ]]; then
+    source <(wget -qO- https://github.com/Aniverse/inexistence/raw/master/00.Installation/function)
+    source <(wget -qO- https://github.com/Aniverse/inexistence/raw/master/00.Installation/check-sys)
+elif [[ -n $(command -v curl) ]]; then
+    source <(curl -Ls https://github.com/Aniverse/inexistence/raw/master/00.Installation/function)
+    source <(curl -Ls https://github.com/Aniverse/inexistence/raw/master/00.Installation/check-sys)
+fi
 set_variables_log_location
 check_var_OutputLOG
 
 ################################################################################################
 
 
-if type wget >/dev/null 2>&1; then
-    echo "Installing wget ... "
+if [[ -z $(command -v wget) ]]; then
+    echo -n "Installing wget ... "
     pm_action install wget >> $OutputLOG 2>&1
     echo -e " ${green}${bold}DONE${normal}"
 fi
