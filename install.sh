@@ -3,7 +3,7 @@
 # https://github.com/Aniverse/qbittorrent-nox-static
 # Author: Aniverse
 script_update=2020.03.18
-script_version=r10008
+script_version=r10009
 ################################################################################################
 
 usage_guide() {
@@ -76,11 +76,11 @@ function install_qbittorrent_nox_static(){
 
 function configure_qbittorrent_nox(){
     if [[ $Root == 1 ]]; then
-        if [[ $release =~ (debian|ubuntu) ]]; then
+        if [[ $os =~ (debian|ubuntu) ]]; then
             adduser --gecos "" $iUser --disabled-password --force-badname >> $OutputLOG 2>&1
-        elif [[ $release == archlinux ]]; then
+        elif [[ $os == archlinux ]]; then
             useradd $iUser -m  >> $OutputLOG 2>&1
-        elif [[ $release == centos ]]; then
+        elif [[ $os == centos ]]; then
             adduser $iUser >> $OutputLOG 2>&1
         else
             useradd $iUser -m  >> $OutputLOG 2>&1
