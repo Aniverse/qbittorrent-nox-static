@@ -3,7 +3,7 @@
 # https://github.com/Aniverse/qbittorrent-nox-static
 # Author: Aniverse
 script_update=2020.03.17
-script_version=r10004
+script_version=r10005
 ################################################################################################
 
 usage_guide() {
@@ -40,10 +40,18 @@ AppNameLower=qbittorrent
 AppCmd=qbittorrent-nox
 AppExec="${BinPath}/${AppCmd}"
 source <(wget -qO- https://github.com/Aniverse/inexistence/raw/master/00.Installation/function)
+source <(wget -qO- https://github.com/Aniverse/inexistence/raw/master/00.Installation/check-sys)
 set_variables_log_location
+check_var_OutputLOG
 
 ################################################################################################
 
+
+if type wget >/dev/null 2>&1; then
+    echo "Installing wget ... "
+    pm_action install wget >> $OutputLOG 2>&1
+    echo -e " ${green}${bold}DONE${normal}"
+fi
 
 function install_qbittorrent_nox_static(){
     wget https://sourceforge.net/projects/inexistence/files/qbittorrent/qbittorrent-nox.4.2.1.lt.1.1.14/download -O $AppExec >> $OutputLOG 2>&1
@@ -56,7 +64,11 @@ function install_qbittorrent_nox_static(){
 
 function configure_qbittorrent_nox(){
     if [[ $Root == 1 ]]; then
-        adduser --gecos "" $iUser --disabled-password --force-badname >> $OutputLOG 2>&1
+        if [[ $release =~ (debian|ubunt) ]]; then
+            adduser --gecos "" $iUser --disabled-password --force-badname >> $OutputLOG 2>&1
+        else
+            adduser $iUser >> $OutputLOG 2>&1
+        fi
         echo "$iUser:$iPass" | chpasswd >> $OutputLOG 2>&1
         bash <(wget -qO- https://github.com/Aniverse/inexistence/raw/master/00.Installation/package/qbittorrent/configure -o /dev/null) -u $iUser -p $iPass -w $webport -i $iport
         echo -e "\n${cyan}qBittorrent WebUI${normal} http://$serverip:$webport\n"
