@@ -1,9 +1,9 @@
-#! /usr/bin/env bash
+#!/bin/bash
 #
 # https://github.com/Aniverse/qbittorrent-nox-static
 # Author: Aniverse
 script_update=2020.03.17
-script_version=r10006
+script_version=r10007
 ################################################################################################
 
 usage_guide() {
@@ -22,7 +22,6 @@ iport=$4
 [[ -z $iUser ]] && echo -e "Work in progress, do not use this script for now ..." && exit
 [[ -z $webport ]] && webport=2017
 [[ -z $iport ]] && iport=9002
-serverip=$(wget --no-check-certificate -t1 -T6 -qO- v4.ipv6-test.com/api/myip.php)
 
 ################################################################################################
 
@@ -41,12 +40,14 @@ AppNameLower=qbittorrent
 AppCmd=qbittorrent-nox
 AppExec="${BinPath}/${AppCmd}"
 
-if [[ -n $(command -v curl) ]]; then
+if [[ -n $(command -v wget) ]]; then
     source <(wget -qO- https://github.com/Aniverse/inexistence/raw/master/00.Installation/function)
     source <(wget -qO- https://github.com/Aniverse/inexistence/raw/master/00.Installation/check-sys)
+    serverip=$(wget --no-check-certificate -t1 -T6 -qO- v4.ipv6-test.com/api/myip.php)
 elif [[ -n $(command -v curl) ]]; then
     source <(curl -Ls https://github.com/Aniverse/inexistence/raw/master/00.Installation/function)
     source <(curl -Ls https://github.com/Aniverse/inexistence/raw/master/00.Installation/check-sys)
+    serverip=$(curl -s v4.ipv6-test.com/api/myip.php)
 fi
 set_variables_log_location
 check_var_OutputLOG
