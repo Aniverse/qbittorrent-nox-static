@@ -30,7 +30,7 @@ while (( "$#" )); do
       shift
       ;;
     --qbflag)
-      qbittorrent_github_tag=$2
+      qb_version=$2
       shift 2
       ;;
     --ltflag)
@@ -266,6 +266,7 @@ export qt_github_tag="$(curl -sNL https://github.com/qt/qtbase/releases | grep -
 export glibc_url="http://gnu.askapache.com/libc/glibc-2.30.tar.xz"
 #
 # export qbittorrent_github_tag="$(curl -sNL https://github.com/qbittorrent/qBittorrent/releases | grep -Eom1 'release-([0-9]{1,4}\.?)+')"
+[ -n $qb_version ] && export qbittorrent_github_tag=release-$qb_version
 [ -z $qbittorrent_github_tag ] && export qbittorrent_github_tag=release-4.1.9
 #
 ## bison
@@ -551,12 +552,17 @@ if [[ "$skip_qbittorrent" = 'no' ]] || [[ "$1" = 'qbittorrent' ]]; then
     # PAUSE
     [[ $pause == 2 ]] && echo -e "\n$folder_qbittorrent\n" && read -ep "Waiting for user's action ..." pause
     # sihuo
+    # https://github.com/qbittorrent/qBittorrent/blob/release-4.2.2/src/webui/www/private/scripts/dynamicTable.js
     if [[ $qbittorrent_github_tag == release-4.2.1 ]]; then
         wget -nv https://github.com/Aniverse/inexistence/raw/files/miscellaneous/qbt.4.2.1.webui.table.patch -O qb.patch
+        patch -p1 < qb.patch
+    elif [[ $qbittorrent_github_tag == release-4.2.3 ]]; then
+        wget -nv https://raw.githubusercontent.com/Aniverse/inexistence-files/master/miscellaneous/qbt.4.2.2.webui.table.patch -O qb.patch
+        patch -p1 < qb.patch
     elif [[ $qbittorrent_github_tag == release-4.1.9 ]]; then
         wget -nv https://github.com/Aniverse/inexistence/raw/files/miscellaneous/qbt.4.1.6.webui.table.patch -O qb.patch
+        patch -p1 < qb.patch
     fi
-    patch -p1 < qb.patch
     ./bootstrap.sh
     ./configure --prefix="$install_dir" "$local_boost" --disable-gui CXXFLAGS="$CXXFLAGS" CPPFLAGS="--static -static $CPPFLAGS" LDFLAGS="--static -static $LDFLAGS -l:libboost_system.a" openssl_CFLAGS="-I$include_dir" openssl_LIBS="-L$lib_dir -l:libcrypto.a -l:libssl.a" libtorrent_CFLAGS="-I$include_dir" libtorrent_LIBS="-L$lib_dir -ldl -l:libtorrent.a" zlib_CFLAGS="-I$include_dir" zlib_LIBS="-L$lib_dir -l:libz.a" QT_QMAKE=$install_dir/bin
     #
