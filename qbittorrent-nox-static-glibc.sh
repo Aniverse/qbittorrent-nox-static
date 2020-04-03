@@ -266,8 +266,8 @@ export qt_github_tag="$(curl -sNL https://github.com/qt/qtbase/releases | grep -
 export glibc_url="http://gnu.askapache.com/libc/glibc-2.30.tar.xz"
 #
 # export qbittorrent_github_tag="$(curl -sNL https://github.com/qbittorrent/qBittorrent/releases | grep -Eom1 'release-([0-9]{1,4}\.?)+')"
-[ -n $qb_version ] && export qbittorrent_github_tag=release-$qb_version
-[ -z $qbittorrent_github_tag ] && export qbittorrent_github_tag=release-4.1.9
+[[ -n $qb_version ]]             && export qbittorrent_github_tag=release-$qb_version
+[[ -z $qbittorrent_github_tag ]] && export qbittorrent_github_tag=release-4.1.9
 #
 ## bison
 #
