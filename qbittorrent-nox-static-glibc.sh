@@ -265,9 +265,8 @@ export qt_github_tag="$(curl -sNL https://github.com/qt/qtbase/releases | grep -
 #
 export glibc_url="http://ftp.gnu.org/gnu/libc/$(curl -sNL http://ftp.gnu.org/gnu/libc/ | grep -Eo 'glibc-([0-9]{1,3}[.]?)([0-9]{1,3}[.]?)([0-9]{1,3}?)\.tar.gz' | sort -V | tail -1)"
 #
-# export qbittorrent_github_tag="$(curl -sNL https://github.com/qbittorrent/qBittorrent/releases | grep -Eom1 'release-([0-9]{1,4}\.?)+')"
 [[ -n $qb_version ]]             && export qbittorrent_github_tag=release-$qb_version
-[[ -z $qbittorrent_github_tag ]] && export qbittorrent_github_tag=release-4.1.9
+[[ -z $qbittorrent_github_tag ]] && export qbittorrent_github_tag="$(curl -sNL https://github.com/qbittorrent/qBittorrent/releases | grep -Eom1 'release-([0-9]{1,4}\.?)+')"
 #
 ## bison
 #
@@ -543,10 +542,16 @@ if [[ "$skip_qbittorrent" = 'no' ]] || [[ "$1" = 'qbittorrent' ]]; then
     #
     [[ -d "$folder_qbittorrent" ]] && rm -rf "$folder_qbittorrent"
     #
-    git clone --branch "$qbittorrent_github_tag" --recursive -j$(nproc) --depth 1 https://github.com/qbittorrent/qBittorrent.git "$folder_qbittorrent"
-    sed -ri 's#static const char DATABASE_URL\[\] = "(.*)";#static const char DATABASE_URL\[\] = "https://github.com/userdocs/qbittorrent-nox-static/raw/master/extras/GeoLite2-Country.mmdb.gz";#g' "$install_dir/qbittorrent/src/base/net/geoipmanager.cpp"
-    #
-    cd "$folder_qbittorrent"
+    if [[ $qb_version == 4.1.9 ]]; then
+        git clone --branch "v4_1_x" --recursive -j$(nproc) https://github.com/qbittorrent/qBittorrent.git "$folder_qbittorrent"
+        cd "$folder_qbittorrent"
+        git config --global user.email "you@example.com"
+        git config --global user.name  "Your Name"
+        git revert eea38e7c9ecb1e1df5e889cb42fc93d3f79d429f -n
+    else
+        git clone --branch "$qbittorrent_github_tag" --recursive -j$(nproc) --depth 1 https://github.com/qbittorrent/qBittorrent.git "$folder_qbittorrent"
+        cd "$folder_qbittorrent"
+    fi
     # PAUSE
     [[ $pause == 2 ]] && echo -e "\n$folder_qbittorrent\n" && read -ep "Waiting for user's action ..." pause
     # sihuo
@@ -556,7 +561,7 @@ if [[ "$skip_qbittorrent" = 'no' ]] || [[ "$1" = 'qbittorrent' ]]; then
     elif [[ $qbittorrent_github_tag == release-4.2.2 ]]; then
         wget -nv https://raw.githubusercontent.com/Aniverse/inexistence-files/master/miscellaneous/qbt.4.2.2.webui.table.patch -O qb.patch
         patch -p1 < qb.patch
-    elif [[ $qbittorrent_github_tag == release-4.1.9 ]]; then
+    elif [[ $qb_version == 4.1.9 ]]; then
         wget -nv https://github.com/Aniverse/inexistence/raw/files/miscellaneous/qbt.4.1.6.webui.table.patch -O qb.patch
         patch -p1 < qb.patch
     fi
