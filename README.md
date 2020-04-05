@@ -20,17 +20,17 @@ bash <(curl -Ls https://github.com/Aniverse/qbittorrent-nox-static/raw/master/in
 ## Download
 
 My qBittorrent static builds can be downloaded [here](https://sourceforge.net/projects/inexistence/files/qbittorrent/).  
-Currently I only have built qBittorrent 4.2.1 with libtorrent 1.1.14, I'll add more versions soon.  
+Currently I only have built qBittorrent 4.2.3 with libtorrent 1.1.14, I'll add more versions soon.  
 
 *qBittorrent was built with the following details:*
 
 ```
 OS: Debian 10 (buster)
 Arch: amd64 (x86_64)
-Qt: 5.14.1
-Libtorrent: 1.1.4.0
+Qt: 5.14.1 or 5.14.2
+Libtorrent: 1.1.14.0 or 1.2.5.0 (RC_1_1 or RC_1_2)
 Boost: 1.72.0
-OpenSSL: 1.1.1d
+OpenSSL: 1.1.1d or 1.1.1f
 zlib: 1.2.11
 ```
 

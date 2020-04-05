@@ -2,8 +2,8 @@
 #
 # https://github.com/Aniverse/qbittorrent-nox-static
 # Author: Aniverse
-script_update=2020.03.18
-script_version=r10009
+script_update=2020.04.05
+script_version=r10010
 ################################################################################################
 
 usage_guide() {
@@ -22,10 +22,12 @@ iUser=$1
 iPass=$2
 webport=$3
 iport=$4
+qbver=$5
 [[ -z $iUser ]] && echo -e "Work in progress, do not use this script for now ..." && exit
 [[ -z $iPass ]] && echo -e "Please input your password" && exit 1
 [[ -z $webport ]] && webport=2017
 [[ -z $iport ]] && iport=9002
+[[ -z $qbver ]] && qbver=4.2.3.lt.1.1.14
 
 ################################################################################################
 
@@ -66,7 +68,7 @@ if [[ -z $(command -v wget) ]]; then
 fi
 
 function install_qbittorrent_nox_static(){
-    wget --no-check-certificate https://sourceforge.net/projects/inexistence/files/qbittorrent/qbittorrent-nox.4.2.1.lt.1.1.14/download -O $AppExec >> $OutputLOG 2>&1
+    wget --no-check-certificate https://sourceforge.net/projects/inexistence/files/qbittorrent/qbittorrent-nox.${qbver}/download -O $AppExec >> $OutputLOG 2>&1
     chmod +x $AppExec >> $OutputLOG 2>&1
     status_lock=$AppName
     echo "status_lock=$status_lock" > $tmp_dir/Variables
