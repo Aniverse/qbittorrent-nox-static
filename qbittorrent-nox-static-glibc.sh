@@ -221,7 +221,7 @@ export lib_dir="$install_dir/lib"
 custom_flags_set () {
     export CXXFLAGS="-std=c++14"
     export CPPFLAGS="-I$include_dir"
-    export LDFLAGS="-Wl,--no-as-needed -ldl -L$lib_dir -lpthread -pthread"
+    export LDFLAGS="-Wl,--no-as-needed -L$lib_dir -lpthread -pthread"
 }
 #
 custom_flags_reset () {
@@ -263,7 +263,7 @@ export qt_github_tag="$(curl -sNL https://github.com/qt/qtbase/releases | grep -
 # export libtorrent_github_tag="$(curl -sNL https://api.github.com/repos/arvidn/libtorrent/releases/latest | sed -rn 's#(.*)"tag_name": "(.*)",#\2#p')"
 [ -z $libtorrent_github_tag ] && export libtorrent_github_tag=RC_1_1
 #
-export glibc_url="http://gnu.askapache.com/libc/glibc-2.30.tar.xz"
+export glibc_url="http://ftp.gnu.org/gnu/libc/$(curl -sNL http://ftp.gnu.org/gnu/libc/ | grep -Eo 'glibc-([0-9]{1,3}[.]?)([0-9]{1,3}[.]?)([0-9]{1,3}?)\.tar.gz' | sort -V | tail -1)"
 #
 # export qbittorrent_github_tag="$(curl -sNL https://github.com/qbittorrent/qBittorrent/releases | grep -Eom1 'release-([0-9]{1,4}\.?)+')"
 [[ -n $qb_version ]]             && export qbittorrent_github_tag=release-$qb_version
@@ -316,6 +316,31 @@ else
     [[ "$skip_bison" = 'yes' && ! "$1" =~ $modules ]] && echo -e "Skipping \e[95mgawk\e[0m module installation"
 fi
 #
+## glibc static
+#
+if [[ "$skip_glibc" = 'no' ]] || [[ "$1" = 'glibc' ]]; then
+    #
+    custom_flags_reset
+    #
+    echo -e "\n\e[32mInstalling glibc\e[0m\n"
+    #
+    file_glibc="$install_dir/glibc.tar.xz"
+    #
+    [[ -f "$file_glibc" ]] && rm -rf {"$install_dir/$(tar tf "$file_glibc" | grep -Eom1 "(.*)[^/]")","$file_glibc"}
+    #
+    wget -qO "$file_glibc" "$glibc_url"
+    tar xf "$file_glibc" -C "$install_dir"
+    mkdir -p "$install_dir/$(tar tf "$file_glibc" | head -1 | cut -f1 -d"/")/build"
+    cd "$install_dir/$(tar tf "$file_glibc" | head -1 | cut -f1 -d"/")/build"
+    #
+    "$install_dir/$(tar tf "$file_glibc" | head -1 | cut -f1 -d"/")/configure" --prefix="$HOME/qbittorrent-build" --enable-static-nss
+    make -j$(nproc)
+    make install
+else
+    [[ "$skip_gawk" = 'no' ]] || [[ "$skip_gawk" = 'yes' && "$1" =~ $modules ]] && echo -e "\nSkipping \e[95mglibc\e[0m module installation"
+    [[ "$skip_gawk" = 'yes' && ! "$1" =~ $modules ]] && echo -e "Skipping \e[95mglibc\e[0m module installation"
+fi
+#
 ## zlib installation
 #
 if [[ "$skip_zlib" = 'no' ||  "$1" = 'zlib' ]]; then
@@ -336,8 +361,8 @@ if [[ "$skip_zlib" = 'no' ||  "$1" = 'zlib' ]]; then
     make -j$(nproc) CXXFLAGS="$CXXFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"
     make install
 else
-    [[ "$skip_gawk" = 'no' ]] || [[ "$skip_gawk" = 'yes' && "$1" =~ $modules ]] && echo -e "\nSkipping \e[95mzlib\e[0m module installation"
-    [[ "$skip_gawk" = 'yes' && ! "$1" =~ $modules ]] && echo -e "Skipping \e[95mzlib\e[0m module installation"
+    [[ "$skip_glibc" = 'no' ]] || [[ "$skip_glibc" = 'yes' && "$1" =~ $modules ]] && echo -e "\nSkipping \e[95mzlib\e[0m module installation"
+    [[ "$skip_glibc" = 'yes' && ! "$1" =~ $modules ]] && echo -e "Skipping \e[95mzlib\e[0m module installation"
 fi
 #
 ## ICU installation
@@ -472,7 +497,7 @@ if [[ "$skip_qttools" = 'no' ]] || [[ "$1" = 'qttools' ]]; then
     cd "$folder_qttools"
     #
     "$install_dir/bin/qmake" -set prefix "$install_dir"
-    "$install_dir/bin/qmake"
+    "$install_dir/bin/qmake" QMAKE_CXXFLAGS="-static" QMAKE_LFLAGS="-static"
     make -j$(nproc)
     make install
 else
@@ -504,31 +529,6 @@ if [[ "$skip_libtorrent" = 'no' ]] || [[ "$1" = 'libtorrent' ]]; then
 else
     [[ "$skip_qttools" = 'no' ]] || [[ "$skip_qttools" = 'yes' && "$1" =~ $modules ]] && echo -e "\nSkipping \e[95mlibtorrent\e[0m module installation"
     [[ "$skip_qttools" = 'yes' && ! "$1" =~ $modules ]] && echo -e "Skipping \e[95mlibtorrent\e[0m module installation"
-fi
-#
-## glibc static
-#
-if [[ "$skip_glibc" = 'no' ]] || [[ "$1" = 'glibc' ]]; then
-    #
-    custom_flags_reset
-    #
-    echo -e "\n\e[32mInstalling glibc\e[0m\n"
-    #
-    file_glibc="$install_dir/glibc.tar.xz"
-    #
-    [[ -f "$file_glibc" ]] && rm -rf {"$install_dir/$(tar tf "$file_glibc" | grep -Eom1 "(.*)[^/]")","$file_glibc"}
-    #
-    wget -qO "$file_glibc" "$glibc_url"
-    tar xf "$file_glibc" -C "$install_dir"
-    mkdir -p "$install_dir/$(tar tf "$file_glibc" | head -1 | cut -f1 -d"/")/build"
-    cd "$install_dir/$(tar tf "$file_glibc" | head -1 | cut -f1 -d"/")/build"
-    #
-    "$install_dir/$(tar tf "$file_glibc" | head -1 | cut -f1 -d"/")/configure" --prefix="$HOME/qbittorrent-build" --enable-static-nss
-    make -j$(nproc)
-    make install
-else
-    [[ "$skip_glibc" = 'no' ]] || [[ "$skip_glibc" = 'yes' && "$1" =~ $modules ]] && echo -e "\nSkipping \e[95mglibc\e[0m module installation"
-    [[ "$skip_glibc" = 'yes' && ! "$1" =~ $modules ]] && echo -e "Skipping \e[95mglibc\e[0m module installation"
 fi
 #
 ## qBittorrent install (static)
