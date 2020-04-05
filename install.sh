@@ -11,22 +11,47 @@ yum install -y nano        # wget
 pacman -S --noconfirm nano # wget
 
 s=$HOME/install.sh;rm -f $s;nano $s;chmod 755 $s
-bash $HOME/install.sh aaa bbb 2021 9005
+bash $HOME/install.sh -u aaa -p bbb -w 2018 -i 9003
 
-bash <(wget -qO- --no-check-certificate https://github.com/Aniverse/qbittorrent-nox-static/raw/master/install.sh -o /dev/null) aniverse test123
-bash <(curl -Ls https://github.com/Aniverse/qbittorrent-nox-static/raw/master/install.sh) aniverse test123
+bash <(wget -qO- --no-check-certificate https://github.com/Aniverse/qbittorrent-nox-static/raw/master/install.sh -o /dev/null) -u aniverse -p test123
+bash <(curl -Ls https://github.com/Aniverse/qbittorrent-nox-static/raw/master/install.sh) -u aniverse -p test123
 }
 ################################################################################################
 
-iUser=$1
-iPass=$2
-webport=$3
-iport=$4
-qbver=$5
-[[ -z $iUser ]] && echo -e "Work in progress, do not use this script for now ..." && exit
-[[ -z $iPass ]] && echo -e "Please input your password" && exit 1
-[[ -z $webport ]] && webport=2017
-[[ -z $iport ]] && iport=9002
+function show_usage() { echo "
+$AppName $pm_action $script_version ($script_update)
+Usage:
+      -u        Username for qBittorrent
+      -p        Password for qBittorrent WebUI
+      -w        WebUI port for qBittorrent
+      -i        Incoming port for qBittorrent"
+exit 1 ; }
+
+OPTS=$(getopt -a -o u:p:w:i:h:l:dh --long "username:,password:,home:,wport:,iPort:,lang:,logbase:,debug,shared,log,help" -- "$@")
+[ ! $? = 0 ] && show_usage
+eval set -- "$OPTS"
+while true; do
+  case "$1" in
+    -u | --username ) iUser="$2"    ; shift 2 ;;
+    -p | --password ) iPass="$2"    ; shift 2 ;;
+    -h | --home     ) iHome="$2"    ; shift 2 ;;
+    -w | --wport    ) wPort="$2"    ; shift 2 ;;
+    -i | --iPort    ) iPort="$2"    ; shift 2 ;;
+    -v | --version  ) qbver="$2"    ; shift 2 ;;
+    -d | --debug    ) debug=1       ; shift   ;;
+    -h | --help     ) show_usage    ; exit 0   ;  shift   ;;
+         --log      ) show_log=1    ; shift   ;;
+         --logbase  ) LogTimes="$2" ; shift 2 ;;
+         --shared   ) shared=1      ; shift   ;;
+    -- ) shift 2 ; break ;;
+     * ) break ;;
+  esac
+done
+
+[[ -z $iUser ]] && echo -e "Please set your username by using -u <username>" && exit 1
+[[ -z $iPass ]] && echo -e "Please set your password by using -p <password>" && exit 1
+[[ -z $wPort ]] && wPort=2017
+[[ -z $iPort ]] && iPort=9002
 [[ -z $qbver ]] && qbver=4.2.3.lt.1.1.14
 
 ################################################################################################
@@ -87,9 +112,9 @@ function configure_qbittorrent_nox(){
         else
             useradd $iUser -m  >> $OutputLOG 2>&1
         fi
-        echo "$iUser:$iPass" | chpasswd >> $OutputLOG 2>&1
-        bash <(wget -qO- --no-check-certificate https://github.com/Aniverse/inexistence/raw/master/00.Installation/package/qbittorrent/configure -o /dev/null) -u $iUser -p $iPass -w $webport -i $iport
-        echo -e "\n${cyan}qBittorrent WebUI${normal} http://$serverip:$webport\n"
+        # echo "$iUser:$iPass" | chpasswd >> $OutputLOG 2>&1
+        bash <(wget -qO- --no-check-certificate https://github.com/Aniverse/inexistence/raw/master/00.Installation/package/qbittorrent/configure -o /dev/null) -u $iUser -p $iPass -w $wPort -i $iPort
+        echo -e "\n${cyan}qBittorrent WebUI${normal} http://$serverip:$wPort\n"
     else
         wget --no-check-certificate https://github.com/Aniverse/inexistence/raw/master/00.Installation/package/qbittorrent/configure -O ${BinPath}/qbconf >> $OutputLOG 2>&1
         chmod +x ${BinPath}/qbconf
