@@ -249,10 +249,18 @@ export zlib_url="https://github.com/madler/zlib/archive/$zlib_github_tag.tar.gz"
 #
 export icu_url="$(curl -sNL https://api.github.com/repos/unicode-org/icu/releases/latest | grep -Eom1 'ht(.*)icu4c(.*)-src.tgz')"
 #
-export openssl_github_tag="$(curl -sNL https://github.com/openssl/openssl/releases | grep -Eom1 'OpenSSL_1_1_([0-9][a-z])')"
+if [[ $qb_version == 3.3.11 ]]; then
+    openssl_github_tag=OpenSSL_1_0_2t
+else
+    export openssl_github_tag="$(curl -sNL https://github.com/openssl/openssl/releases | grep -Eom1 'OpenSSL_1_1_([0-9][a-z])')"
+fi
 export openssl_url="https://github.com/openssl/openssl/archive/$openssl_github_tag.tar.gz"
 #
-export boost_version="$(curl -sNL https://www.boost.org/users/download/ | sed -rn 's#(.*)e">Version (.*)</s(.*)#\2#p')"
+if [[ $qb_version == 3.3.11 ]]; then
+    boost_version=1.65.1
+else
+    export boost_version="$(curl -sNL https://www.boost.org/users/download/ | sed -rn 's#(.*)e">Version (.*)</s(.*)#\2#p')"
+fi
 export boost_github_tag="boost-$boost_version"
 export boost_build_url="https://github.com/boostorg/build/archive/$boost_github_tag.tar.gz"
 export boost_url="https://dl.bintray.com/boostorg/release/$boost_version/source/boost_${boost_version//./_}.tar.gz"
@@ -261,7 +269,10 @@ export qt_version='5.14'
 export qt_github_tag="$(curl -sNL https://github.com/qt/qtbase/releases | grep -Eom1 "v$qt_version.([0-9]{1,2})")"
 #
 # export libtorrent_github_tag="$(curl -sNL https://api.github.com/repos/arvidn/libtorrent/releases/latest | sed -rn 's#(.*)"tag_name": "(.*)",#\2#p')"
-[ -z $libtorrent_github_tag ] && export libtorrent_github_tag=RC_1_1
+if [[ $qb_version == 3.3.11 ]]; then
+    libtorrent_github_tag=RC_1_0
+fi
+[[ -z $libtorrent_github_tag ]]  && export libtorrent_github_tag=RC_1_1
 #
 export glibc_url="http://ftp.gnu.org/gnu/libc/$(curl -sNL http://ftp.gnu.org/gnu/libc/ | grep -Eo 'glibc-([0-9]{1,3}[.]?)([0-9]{1,3}[.]?)([0-9]{1,3}?)\.tar.gz' | sort -V | tail -1)"
 #
@@ -548,6 +559,13 @@ if [[ "$skip_qbittorrent" = 'no' ]] || [[ "$1" = 'qbittorrent' ]]; then
         git config --global user.email "you@example.com"
         git config --global user.name  "Your Name"
         git revert eea38e7c9ecb1e1df5e889cb42fc93d3f79d429f -n
+    elif [[ $qb_version == 3.3.11 ]]; then
+        git clone --branch "release-3.3.11" --recursive -j$(nproc) https://github.com/qbittorrent/qBittorrent.git "$folder_qbittorrent"
+        cd "$folder_qbittorrent"
+        git config --global user.email "you@example.com"
+        git config --global user.name  "Your Name"
+        git cherry-pick db3158c
+        git cherry-pick b271fa9
     else
         git clone --branch "$qbittorrent_github_tag" --recursive -j$(nproc) --depth 1 https://github.com/qbittorrent/qBittorrent.git "$folder_qbittorrent"
         cd "$folder_qbittorrent"
@@ -558,7 +576,7 @@ if [[ "$skip_qbittorrent" = 'no' ]] || [[ "$1" = 'qbittorrent' ]]; then
     if [[ $qbittorrent_github_tag == release-4.2.1 ]]; then
         wget -nv https://github.com/Aniverse/inexistence/raw/files/miscellaneous/qbt.4.2.1.webui.table.patch -O qb.patch
         patch -p1 < qb.patch
-    elif [[ $qbittorrent_github_tag == release-4.2.2 ]]; then
+    elif [[ $qbittorrent_github_tag == release-4.2.3 ]]; then
         wget -nv https://raw.githubusercontent.com/Aniverse/inexistence-files/master/miscellaneous/qbt.4.2.2.webui.table.patch -O qb.patch
         patch -p1 < qb.patch
     elif [[ $qb_version == 4.1.9 ]]; then
