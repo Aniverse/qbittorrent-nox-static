@@ -219,13 +219,25 @@ export lib_dir="$install_dir/lib"
 ## Set some build settings we need applied
 #
 custom_flags_set () {
-    export CXXFLAGS="-std=c++14"
+    if [[ $qb_version == 3.3.11 ]]; then
+        export CXXFLAGS="-std=c++11"
+        CXXFLAG=11
+    else
+        export CXXFLAGS="-std=c++14"
+        CXXFLAG=14
+    fi
     export CPPFLAGS="-I$include_dir"
     export LDFLAGS="-Wl,--no-as-needed -L$lib_dir -lpthread -pthread"
 }
 #
 custom_flags_reset () {
-    export CXXFLAGS="-std=c++14"
+    if [[ $qb_version == 3.3.11 ]]; then
+        export CXXFLAGS="-std=c++11"
+        CXXFLAG=11
+    else
+        export CXXFLAGS="-std=c++14"
+        CXXFLAG=14
+    fi
     export CPPFLAGS=""
     export LDFLAGS=""
 }
@@ -250,7 +262,8 @@ export zlib_url="https://github.com/madler/zlib/archive/$zlib_github_tag.tar.gz"
 export icu_url="$(curl -sNL https://api.github.com/repos/unicode-org/icu/releases/latest | grep -Eom1 'ht(.*)icu4c(.*)-src.tgz')"
 #
 if [[ $qb_version == 3.3.11 ]]; then
-    openssl_github_tag=OpenSSL_1_0_2t
+    # openssl_github_tag=OpenSSL_1_0_2t
+    export openssl_github_tag="$(curl -sNL https://github.com/openssl/openssl/releases | grep -Eom1 'OpenSSL_1_1_([0-9][a-z])')"
 else
     export openssl_github_tag="$(curl -sNL https://github.com/openssl/openssl/releases | grep -Eom1 'OpenSSL_1_1_([0-9][a-z])')"
 fi
@@ -259,7 +272,7 @@ export openssl_url="https://github.com/openssl/openssl/archive/$openssl_github_t
 if [[ $qb_version == 3.3.11 ]]; then
     boost_version=1.65.1
 else
-    export boost_version="$(curl -sNL https://www.boost.org/users/download/ | sed -rn 's#(.*)e">Version (.*)</s(.*)#\2#p')"
+    export boost_version="$(curl -sNL https://www.boost.org/users/download/ | sed -rn 's#(.*)e">Version (.*\.[0-9]{1,2})</s(.*)#\2#p')"
 fi
 export boost_github_tag="boost-$boost_version"
 export boost_build_url="https://github.com/boostorg/build/archive/$boost_github_tag.tar.gz"
@@ -462,7 +475,11 @@ if [[ "$skip_boost" = 'no' ]] || [[ "$1" = 'boost' ]]; then
     cd "$folder_boost"
     #
     ./bootstrap.sh
-    "$install_dir/bin/b2" -j$(nproc) python="$python_short_version" variant=release threading=multi link=static runtime-link=static cxxstd=14 cxxflags="$CXXFLAGS" cflags="$CPPFLAGS" linkflags="$LDFLAGS" toolset=gcc install --prefix="$install_dir"
+    if [[ $qb_version == 3.3.11 ]]; then
+        "$install_dir/bin/b2" -j$(nproc) python="$python_short_version" variant=release threading=multi link=static runtime-link=static cflags="$CPPFLAGS" linkflags="$LDFLAGS" toolset=gcc install --prefix="$install_dir"
+    else
+        "$install_dir/bin/b2" -j$(nproc) python="$python_short_version" variant=release threading=multi link=static runtime-link=static cxxstd=$CXXFLAG cxxflags="$CXXFLAGS" cflags="$CPPFLAGS" linkflags="$LDFLAGS" toolset=gcc install --prefix="$install_dir"
+    fi
 else
     [[ "$skip_boost_build" = 'no' ]] || [[ "$skip_boost_build" = 'yes' && "$1" =~ $modules ]] && echo -e "\nSkipping \e[95mboost\e[0m module installation"
     [[ "$skip_boost_build" = 'yes' && ! "$1" =~ $modules ]] && echo -e "Skipping \e[95mboost\e[0m module installation"
@@ -483,7 +500,7 @@ if [[ "$skip_qtbase" = 'no' ]] || [[ "$1" = 'qtbase' ]]; then
     git clone --branch "$qt_github_tag" --recursive -j$(nproc) --depth 1 https://github.com/qt/qtbase.git "$folder_qtbase"
     cd "$folder_qtbase"
     #
-    ./configure -prefix "$install_dir" -openssl-linked -static -opensource -confirm-license -release -c++std c++14 -no-shared -no-opengl -no-dbus -no-widgets -no-gui -no-compile-examples -I "$include_dir" -L "$lib_dir" QMAKE_LFLAGS="$LDFLAGS"
+    ./configure -prefix "$install_dir" -openssl-linked -static -opensource -confirm-license -release -c++std c++$CXXFLAG -no-shared -no-opengl -no-dbus -no-widgets -no-gui -no-compile-examples -I "$include_dir" -L "$lib_dir" QMAKE_LFLAGS="$LDFLAGS"
     make -j$(nproc)
     make install
 else
@@ -535,7 +552,7 @@ if [[ "$skip_libtorrent" = 'no' ]] || [[ "$1" = 'libtorrent' ]]; then
     #
     ./autotool.sh
     ./configure "$local_boost" "$local_openssl" --with-boost-python
-    "$install_dir/bin/b2" -j$(nproc) python="$python_short_version" dht=on encryption=on crypto=openssl i2p=on extensions=on variant=release threading=multi link=static boost-link=static runtime-link=static cxxstd=14 cxxflags="$CXXFLAGS" cflags="$CPPFLAGS" linkflags="$LDFLAGS" toolset=gcc install --prefix="$install_dir"
+    "$install_dir/bin/b2" -j$(nproc) python="$python_short_version" dht=on encryption=on crypto=openssl i2p=on extensions=on variant=release threading=multi link=static boost-link=static runtime-link=static cxxstd=$CXXFLAG cxxflags="$CXXFLAGS" cflags="$CPPFLAGS" linkflags="$LDFLAGS" toolset=gcc install --prefix="$install_dir"
 else
     [[ "$skip_qttools" = 'no' ]] || [[ "$skip_qttools" = 'yes' && "$1" =~ $modules ]] && echo -e "\nSkipping \e[95mlibtorrent\e[0m module installation"
     [[ "$skip_qttools" = 'yes' && ! "$1" =~ $modules ]] && echo -e "Skipping \e[95mlibtorrent\e[0m module installation"
