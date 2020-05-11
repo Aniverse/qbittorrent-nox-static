@@ -2,8 +2,8 @@
 #
 # https://github.com/Aniverse/qbittorrent-nox-static
 # Author: Aniverse
-script_update=2020.04.05
-script_version=r10010
+script_update=2020.05.11
+script_version=r10011
 ################################################################################################
 
 usage_guide() {
@@ -24,10 +24,19 @@ Usage:
       -u        Username for qBittorrent
       -p        Password for qBittorrent WebUI
       -w        WebUI port for qBittorrent
-      -i        Incoming port for qBittorrent"
+      -i        Incoming port for qBittorrent
+      -v        Specify qBittorrent version
+
+available version:
+      4.1.9.lt.1.1.14
+      4.2.3.lt.1.1.14
+      4.2.3.lt.1.2.5
+      4.2.4.lt.1.1.14
+      4.2.5.lt.1.2.6
+"
 exit 1 ; }
 
-OPTS=$(getopt -a -o u:p:w:i:h:l:dh --long "username:,password:,home:,wport:,iPort:,lang:,logbase:,debug,shared,log,help" -- "$@")
+OPTS=$(getopt -a -o u:p:w:i:h:l:v:dh --long "username:,password:,home:,wport:,iPort:,lang:,logbase:,version:,debug,shared,log,help" -- "$@")
 [ ! $? = 0 ] && show_usage
 eval set -- "$OPTS"
 while true; do
